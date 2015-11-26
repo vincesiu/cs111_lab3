@@ -644,7 +644,7 @@ indir_index(uint32_t b)
   //index in the indirect block.
   if (b < 10)
   	return -1;
-  else if (b < (256 + 10)
+  else if (b < (256 + 10))
     return 0;
   else if (b < (65536 + 256 + 10))
     return (b - (256 + 10)) / 256;
