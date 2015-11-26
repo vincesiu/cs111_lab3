@@ -607,8 +607,18 @@ free_block(uint32_t blockno)
 static int32_t
 indir2_index(uint32_t b)
 {
-	// Your code here.
-	return -1;
+  //First 10 blocks are direct pointers
+  //Next 256 blocks are in the first indirect block
+  //Next 256 * 256 blocks are linked in the doubly indirect block
+  //Zero indexing used for blocks
+  if (b < (256 + 10))
+    return -1;
+  else if (b < (65536 + 256 + 10)
+    return 0;
+  else
+    eprintk("Error in indir2_index: passed an out of bounds block number"); 
+    
+  return -2;
 }
 
 
@@ -626,8 +636,20 @@ indir2_index(uint32_t b)
 static int32_t
 indir_index(uint32_t b)
 {
-	// Your code here.
-	return -1;
+  //First 10 blocks are direct pointers
+  //Next 256 blocks are in the first indirect block
+  //Next 256 * 256 blocks are linked in the doubly indirect block
+  //Zero indexing used for blocks
+  //If the block is linked by the doubly indirect block, we give the
+  //index in the indirect block.
+  if (b < 10)
+  	return -1;
+  else if (b < (256 + 10)
+    return 0;
+  else if (b < (65536 + 256 + 10))
+    return (b - (256 + 10)) / 256;
+  else
+    eprintk("Error in indir_index: passed an out of bounds block number"); 
 }
 
 
@@ -643,8 +665,19 @@ indir_index(uint32_t b)
 static int32_t
 direct_index(uint32_t b)
 {
-	// Your code here.
-	return -1;
+  //First 10 blocks are direct pointers
+  //Next 256 blocks are in the first indirect block
+  //Next 256 * 256 blocks are linked in the doubly indirect block
+  //Zero indexing used for blocks
+  if (b < 10)
+    return b;
+  else if (b < (10 + 256))
+    return b - 10;
+  else if (b < (10 + 256 + 65536))
+    return (b - 10 - 256) % 256;
+  else
+    eprintk("Error in direct_index: passed an out of bounds block number");
+  return -1;
 }
 
 
@@ -844,6 +877,11 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 
 	// Make sure we don't read past the end of the file!
 	// Change 'count' so we never read past the end of the file.
+ 
+  // Objective: try to find where the current file size is, and
+  // return the min of count and filesizeleft (which is probably
+  // something to do with f_pos - filp and filesize)
+
 	/* EXERCISE: Your code here */
 
 	// Copy the data to user block by block
