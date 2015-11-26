@@ -613,7 +613,7 @@ indir2_index(uint32_t b)
   //Zero indexing used for blocks
   if (b < (256 + 10))
     return -1;
-  else if (b < (65536 + 256 + 10)
+  else if (b < (65536 + 256 + 10))
     return 0;
   else
     eprintk("Error in indir2_index: passed an out of bounds block number"); 
