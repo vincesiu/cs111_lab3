@@ -603,6 +603,7 @@ free_block(uint32_t blockno)
 //	       block, -1 if it does not.
 //
 // EXERCISE: Fill in this function.
+// Done - Vincent.
 
 static int32_t
 indir2_index(uint32_t b)
@@ -611,6 +612,16 @@ indir2_index(uint32_t b)
   //Next 256 blocks are in the first indirect block
   //Next 256 * 256 blocks are linked in the doubly indirect block
   //Zero indexing used for blocks
+  
+  if (b < (OSPFS_NINDIRECT + OSPFS_NDIRECT))
+    return -1;
+  else if (b < (OSPFS_NINDIRECT * OSPFS_NINDIRECT + OSPFS_NINDIRECT + OSPFS_NDIRECT))
+    return 0;
+  else
+    eprintk("Error in indir2_index: passed an out of bounds block number"); 
+    
+  return -2;
+  /*
   if (b < (256 + 10))
     return -1;
   else if (b < (65536 + 256 + 10))
@@ -619,6 +630,7 @@ indir2_index(uint32_t b)
     eprintk("Error in indir2_index: passed an out of bounds block number"); 
     
   return -2;
+  */
 }
 
 
@@ -632,6 +644,7 @@ indir2_index(uint32_t b)
 //		the doubly indirect block.
 //
 // EXERCISE: Fill in this function.
+// Done - Vincent.
 
 static int32_t
 indir_index(uint32_t b)
@@ -642,6 +655,17 @@ indir_index(uint32_t b)
   //Zero indexing used for blocks
   //If the block is linked by the doubly indirect block, we give the
   //index in the indirect block.
+  //
+  if (b < OSPFS_NDIRECT)
+  	return -1;
+  else if (b < (OSPFS_NINDIRECT + OSPFS_NDIRECT))
+    return 0;
+  else if (b < (OSPFS_NINDIRECT * OSPFS_NINDIRECT + OSPFS_NINDIRECT + OSPFS_NDIRECT))
+    return (b - (OSPFS_NINDIRECT + OSPFS_NDIRECT)) / OSPFS_NINDIRECT;
+  else
+    eprintk("Error in indir_index: passed an out of bounds block number"); 
+ 
+  /*
   if (b < 10)
   	return -1;
   else if (b < (256 + 10))
@@ -650,6 +674,7 @@ indir_index(uint32_t b)
     return (b - (256 + 10)) / 256;
   else
     eprintk("Error in indir_index: passed an out of bounds block number"); 
+    */
 }
 
 
@@ -661,6 +686,7 @@ indir_index(uint32_t b)
 //	    block array.
 //
 // EXERCISE: Fill in this function.
+// Done - Vincent.
 
 static int32_t
 direct_index(uint32_t b)
@@ -669,6 +695,17 @@ direct_index(uint32_t b)
   //Next 256 blocks are in the first indirect block
   //Next 256 * 256 blocks are linked in the doubly indirect block
   //Zero indexing used for blocks
+  if (b < OSPFS_NDIRECT)
+    return b;
+  else if (b < (OSPFS_NDIRECT + OSPFS_NINDIRECT))
+    return b - OSPFS_NDIRECT;
+  else if (b < (OSPFS_NDIRECT + OSPFS_NINDIRECT + OSPFS_NINDIRECT * OSPFS_NINDIRECT))
+    return (b - OSPFS_NDIRECT - OSPFS_NINDIRECT) % OSPFS_NINDIRECT;
+  else
+    eprintk("Error in direct_index: passed an out of bounds block number");
+  return -1;
+
+  /*
   if (b < 10)
     return b;
   else if (b < (10 + 256))
@@ -678,6 +715,7 @@ direct_index(uint32_t b)
   else
     eprintk("Error in direct_index: passed an out of bounds block number");
   return -1;
+  */
 }
 
 
@@ -868,6 +906,8 @@ ospfs_notify_change(struct dentry *dentry, struct iattr *attr)
 //
 //   EXERCISE: Complete this function.
 
+
+
 static ssize_t
 ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 {
@@ -883,6 +923,7 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
   // something to do with f_pos - filp and filesize)
 
 	/* EXERCISE: Your code here */
+  count = count < oi->oi_size
 
 	// Copy the data to user block by block
 	while (amount < count && retval >= 0) {
@@ -891,6 +932,7 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 		char *data;
 
 		// ospfs_inode_blockno returns 0 on error
+
 		if (blockno == 0) {
 			retval = -EIO;
 			goto done;
