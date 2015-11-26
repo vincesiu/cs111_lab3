@@ -923,12 +923,19 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
   // something to do with f_pos - filp and filesize)
 
 	/* EXERCISE: Your code here */
-  count = count < oi->oi_size
+  //Done - Vincent.
+
+  //Note: f_pos is casted to a uint32_t in the ospfs_inode_blockno function, and
+  //looking inside it, we see that it is just a zero offset from the beginning
+  //of the file
+  count = count < (oi->oi_size - (uint32_t) *f_pos) ? count : (oi->oi_size - (uint32_t) *f_pos);
 
 	// Copy the data to user block by block
 	while (amount < count && retval >= 0) {
 		uint32_t blockno = ospfs_inode_blockno(oi, *f_pos);
 		uint32_t n;
+    uint32_t length_to_copy;
+    uint32_t idx;
 		char *data;
 
 		// ospfs_inode_blockno returns 0 on error
@@ -940,13 +947,19 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 
 		data = ospfs_block(blockno);
 
+
 		// Figure out how much data is left in this block to read.
 		// Copy data into user space. Return -EFAULT if unable to write
 		// into user space.
 		// Use variable 'n' to track number of bytes moved.
 		/* EXERCISE: Your code here */
-		retval = -EIO; // Replace these lines
-		goto done;
+    // Done - Vincent.
+    // Just a nice cmov so I can perform less if statement branching yay
+    length_to_copy = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
+
+    //Copying over the data
+    for ( n = 0; n < length_to_copy; n++ )
+      buffer[n] = data[n];
 
 		buffer += n;
 		amount += n;
