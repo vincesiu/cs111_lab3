@@ -986,7 +986,7 @@ remove_block(ospfs_inode_t *oi)
     free_block(allocated[0]);
   }
 
-  oi->oi_size -= (oi_size % OSPFS_BLKSIZE);
+  oi->oi_size -= (oi->oi_size % OSPFS_BLKSIZE);
   //I want it to subtract OSPFS_BLKSIZE, not 0, if oi_size % OSPFS_BLKSIZE == 0
   if (((oi->oi_size % OSPFS_BLKSIZE) == 0) && (oi->oi_size != ))
     oi->oi_size -= OSPFS_BLKSIZE;
