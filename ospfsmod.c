@@ -808,7 +808,6 @@ add_block(ospfs_inode_t *oi)
   // allocated[1] is indirect block
   // allocated[2] is doubly indirect block
 	uint32_t allocated[3] = { 0, 0, 0 };
-  //uint32_t *allocated_ptr[3] = { 0, 0, 0 };
 
   
 
@@ -818,6 +817,18 @@ add_block(ospfs_inode_t *oi)
   int idx_data = 0;
   int new_blocks;
   char *cur_block_char;
+
+  //hardcoded if this is the first block to be allocated
+  if (n == 0)
+  {
+    if ((oi->oi_direct[0] = allocate_block()) == 0)
+      return -ENOSPC;
+
+    cur_block_char = (char *) ospfs_block(oi->oi_direct[0]);
+    for (idx_data = 0; idx_data < OSPFS_BLKSIZE; idx_data++)
+      cur_block_char[idx_data] = 0; 
+    return 0;
+  }
 
   //Allocating blocks, and freeing if we can't allocate anymore
   if (indir2_index(n) != indir2_index(n-1))
@@ -848,12 +859,6 @@ add_block(ospfs_inode_t *oi)
   }
 
 
-  //Setting pointers for the indirect and doubly indirect blocks
-  /*
-  allocated_ptr[2] = ospfs_block(allocated[2]);
-  allocated_ptr[1] = ospfs_block(allocated[1]);
-  allocated_ptr[0] = ospfs_block(allocated[0]);
-  */
 
   //NOTE: 
   //this threw me off a lot, what is stored inside the indirect and indirect
@@ -863,14 +868,10 @@ add_block(ospfs_inode_t *oi)
     oi->oi_indirect2 = allocated[2];
     *(uint32_t *) ospfs_block(allocated[2]) = allocated[1];
     *(uint32_t *) ospfs_block(allocated[1]) = allocated[0];
-    //*allocated_ptr[2] = allocated[1];
-    //*allocated_ptr[1] = allocated[0];
-
   }
   else if (new_blocks == 2)
   {
 
-    //*allocated_ptr[1] = allocated[0];
     *(uint32_t *) ospfs_block(allocated[1]) = allocated[0];
 
     if (indir2_index(n) == 0)
