@@ -856,14 +856,17 @@ add_block(ospfs_inode_t *oi)
   if (new_blocks == 3)
   {
     oi->oi_indirect2 = allocated[2];
-    *allocated_ptr[2] = allocated[1];
-    *allocated_ptr[1] = allocated[0];
+    *(uint32_t *) ospfs_block(allocated[2]) = allocated[1];
+    *(uint32_t *) ospfs_block(allocated[1]) = allocated[0];
+    //*allocated_ptr[2] = allocated[1];
+    //*allocated_ptr[1] = allocated[0];
 
   }
   else if (new_blocks == 2)
   {
 
-    *allocated_ptr[1] = allocated[0];
+    //*allocated_ptr[1] = allocated[0];
+    *(uint32_t *) ospfs_block(allocated[1]) = allocated[0];
 
     if (indir2_index(n) == 0)
       ((uint32_t *) ospfs_block(oi->oi_indirect2))[indir_index(n)] = allocated[1];
