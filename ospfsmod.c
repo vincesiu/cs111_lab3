@@ -567,6 +567,7 @@ allocate_block(void)
   
   //I want to optimize and use "idx = ospfs_super->os_firstinob", but why risk
   //it?  I'm not sure 100% on the implementation details, so I'll just be safe.
+
   for (idx = 0; idx < ospfs_super->os_nblocks; idx++)
   {
     if (bitvector_test(freemap, (idx % OSPFS_BLKBITSIZE)) == 1)
@@ -584,6 +585,7 @@ allocate_block(void)
     }
   }
 
+  
 	return 0;
 }
 
@@ -716,6 +718,7 @@ indir_index(uint32_t b)
   else
     eprintk("Error in indir_index: passed an out of bounds block number"); 
     */
+  return -2;
 }
 
 
@@ -937,7 +940,9 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	int r = 0;
 
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
+    
 	        /* EXERCISE: Your code here */
+
 		return -EIO; // Replace this line
 	}
 	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
@@ -1102,13 +1107,15 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	/* EXERCISE: Your code here */
   // Done - Vincent.
   if ((filp->f_flags & O_APPEND) != 0) 
-    f_pos = oi->oi_size - 1;
+    *f_pos = oi->oi_size;
+
+  int init_offset = *f_pos % OSPFS_BLKSIZE;
 
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
   // Done - Vincent.
-  if ((r = change_size(oi, (uint32_t) count + (uint32_t) f_pos)) < 0)
+  if ((r = change_size(oi, (uint32_t) count + (uint32_t) *f_pos)) < 0)
     return r;
 
 	// Copy data block by block
@@ -1132,8 +1139,9 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
     // Done - Vincent.
     n = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
 
-    if (copy_from_user(data, buffer, n) != 0)
+    if (copy_from_user(data + init_offset, buffer, n) != 0)
       return -EFAULT;
+    init_offset = 0;
     
 
 		buffer += n;
