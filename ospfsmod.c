@@ -805,7 +805,7 @@ add_block(ospfs_inode_t *oi)
   // allocated[1] is indirect block
   // allocated[2] is doubly indirect block
 	uint32_t allocated[3] = { 0, 0, 0 };
-  uint32_t *allocated_ptr[3] = { 0, 0, 0};
+  uint32_t *allocated_ptr[3] = { 0, 0, 0 };
 
   
 
@@ -853,9 +853,9 @@ add_block(ospfs_inode_t *oi)
 
   if (new_blocks == 3)
   {
-    oi->oi_indirect2 = allocated_ptr[2];
-    *oi->oi_indirect2 = allocated_ptr[1];
-    **oi->oi_indirect2 = allocated_ptr[0];
+    (uint32_t *)oi->oi_indirect2 = allocated_ptr[2];
+    *(uint32_t *)oi->oi_indirect2 = allocated_ptr[1];
+    **(uint32_t *)oi->oi_indirect2 = allocated_ptr[0];
 
   }
   else if (new_blocks == 2)
@@ -864,18 +864,18 @@ add_block(ospfs_inode_t *oi)
     *allocated_ptr[1] = allocated_ptr[0];
 
     if (indir2_index(n + 1) == 0)
-      oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[1];
+      (uint32_t *)oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[1];
     else
-      oi->oi_indirect = allocated_ptr[1];
+      (uint32_t *)oi->oi_indirect = allocated_ptr[1];
   }
   else
   {
     if (indir2_index(n + 1) == 0)
-      oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[0]; 
+      (uint32_t *)oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[0]; 
     else if (indir_index(n+1) != -1)
-      oi->oi_indirect[direct_index(n + 1)] = allocated_ptr[0]; 
+      (uint32_t *)oi->oi_indirect[direct_index(n + 1)] = allocated_ptr[0]; 
     else
-      oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0]; 
+      (uint32_t *)oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0]; 
   }
 
 
