@@ -185,10 +185,6 @@ ospfs_inode_blockno(ospfs_inode_t *oi, uint32_t offset)
 	if (offset >= oi->oi_size || oi->oi_ftype == OSPFS_FTYPE_SYMLINK)
 		return 0;
 	else if (blockno >= OSPFS_NDIRECT + OSPFS_NINDIRECT) {
-    else
-    {
-
-    }
 		uint32_t blockoff = blockno - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
 		uint32_t *indirect2_block = ospfs_block(oi->oi_indirect2);
 		uint32_t *indirect_block = ospfs_block(indirect2_block[blockoff / OSPFS_NINDIRECT]);
