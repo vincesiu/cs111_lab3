@@ -612,7 +612,7 @@ free_block(uint32_t blockno)
  
   int freemap_idx = blockno / OSPFS_BLKBITSIZE;
 	void * freemap = &ospfs_data[(OSPFS_FREEMAP_BLK + freemap_idx) * OSPFS_BLKSIZE];
-  bitvector_set(freemap, idx % OSPFS_BLKBITSIZE);
+  bitvector_set(freemap, blockno % OSPFS_BLKBITSIZE);
 }
 
 
