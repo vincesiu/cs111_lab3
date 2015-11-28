@@ -851,31 +851,37 @@ add_block(ospfs_inode_t *oi)
   allocated_ptr[1] = ospfs_block(allocated[1]);
   allocated_ptr[0] = ospfs_block(allocated[0]);
 
+  //NOTE: 
+  //this threw me off a lot, what is stored inside the indirect and indirect
+  //blocks are the BLOCK NUMBERS, not their pointers
   if (new_blocks == 3)
   {
-    (uint32_t *)oi->oi_indirect2 = allocated_ptr[2];
-    *(uint32_t *)oi->oi_indirect2 = allocated_ptr[1];
-    **(uint32_t *)oi->oi_indirect2 = allocated_ptr[0];
+    oi->oi_indirect2 = allocated[2];
+    *allocated_ptr[2] = allocated[1];
+    *allocated_ptr[1] = allocated[0];
 
   }
   else if (new_blocks == 2)
   {
 
-    *allocated_ptr[1] = allocated_ptr[0];
+    *allocated_ptr[1] = allocated[0];
 
     if (indir2_index(n + 1) == 0)
-      (uint32_t *)oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[1];
+      (ospfs_block(oi->oi_indirect2))[indir_index(n + 1)] = allocated[1];
     else
-      (uint32_t *)oi->oi_indirect = allocated_ptr[1];
+      *ospfs_block(oi->oi_indirect) = allocated[1];
   }
   else
   {
     if (indir2_index(n + 1) == 0)
-      (uint32_t *)oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[0]; 
+      (ospfs_block((ospfs_block(oi->oi_indirect2))[indir_index(n + 1)]))[direct_index(n + 1)] = allocated[0]; 
+//      (uint32_t *)oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[0]; 
     else if (indir_index(n+1) != -1)
-      (uint32_t *)oi->oi_indirect[direct_index(n + 1)] = allocated_ptr[0]; 
+      (ospfs_block(oi->oi_indirect))[direct_index(n+1)] = allocated[0];
+//     (uint32_t *)oi->oi_indirect[direct_index(n + 1)] = allocated_ptr[0]; 
     else
-      (uint32_t *)oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0]; 
+      oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0];
+//    (uint32_t *)oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0]; 
   }
 
 
