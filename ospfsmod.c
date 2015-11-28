@@ -185,6 +185,10 @@ ospfs_inode_blockno(ospfs_inode_t *oi, uint32_t offset)
 	if (offset >= oi->oi_size || oi->oi_ftype == OSPFS_FTYPE_SYMLINK)
 		return 0;
 	else if (blockno >= OSPFS_NDIRECT + OSPFS_NINDIRECT) {
+    else
+    {
+
+    }
 		uint32_t blockoff = blockno - (OSPFS_NDIRECT + OSPFS_NINDIRECT);
 		uint32_t *indirect2_block = ospfs_block(oi->oi_indirect2);
 		uint32_t *indirect_block = ospfs_block(indirect2_block[blockoff / OSPFS_NINDIRECT]);
@@ -553,6 +557,36 @@ static uint32_t
 allocate_block(void)
 {
 	/* EXERCISE: Your code here */
+  // Done - Vincent.
+
+  //Getting the pointer to the free map
+	void * freemap = &ospfs_data[OSPFS_FREEMAP_BLK * OSPFS_BLKSIZE];
+  int freemap_idx = 0;
+  int idx;
+
+  //Remember, free block bitmap starts at block 2, block 1 and 
+  //block 0 are reserved for super and for bootloader
+  //However, the free blocks start after the free block bitmap
+  //so we're going to have to run through multiple free block
+  //bitmaps, and incremenet the freemap pointer every time
+  
+  for (idx = 2; idx < ospfs_super->nblocks; idx++)
+  {
+    if (bitvector_test(freemap, (idx % OSPFS_BLKSIZE)) == 1)
+    {
+      //set the block to in use
+      bitvector_clear(freemap, (idx % OSPFS_BLKSIZE));
+      return idx;
+    }
+
+    if (idx == OSPFS_BLKSIZE)
+    {
+      //increment freemap pointer to the next bitvector 
+      freemap_idx++;
+      freemap = &ospfs_data[(OSPFS_FREEMAP_BLK + freemap_idx) * OSPFS_BLKSIZE];
+    }
+  }
+
 	return 0;
 }
 
@@ -757,7 +791,37 @@ add_block(ospfs_inode_t *oi)
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 
 	// keep track of allocations to free in case of -ENOSPC
+  //allocated[0] is indirect block
+  //allocated[1] is doubly indirect block
 	uint32_t *allocated[2] = { 0, 0 };
+
+  //direct_index(block num)
+  //indir_index(block_num)
+  //indir2_index(block_num)
+
+  if (indir2_index(n) != indir2_index(n+1))
+  {
+    //need to allocate:
+    //  doubly indirect block
+    //  indirect block
+    //  data block
+    allocated[0] = 1;
+    allocated[1] = 1;
+  }
+  else if (indir_index(n) != indir_index(n))
+  {
+    //need to allocate:
+    //  indirect block
+    //  data block
+    allocated[0] = 1;
+  }
+  else
+  {
+    //need to allocate:
+    //  data block
+    allocated[0] = 0; //delete me
+  }
+  
 
 	/* EXERCISE: Your code here */
 	return -EIO; // Replace this line
@@ -954,6 +1018,7 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 		// Use variable 'n' to track number of bytes moved.
 		/* EXERCISE: Your code here */
     // Done - Vincent.
+
     // Just a nice cmov so I can perform less if statement branching yay
     length_to_copy = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
 
