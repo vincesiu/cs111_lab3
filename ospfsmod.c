@@ -972,14 +972,14 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
     
 	        /* EXERCISE: Your code here */
-
-		return -EIO; // Replace this line
-	}
-	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
-	        /* EXERCISE: Your code here */
           //Done - Vincent.
     if ((r = add_block(oi)) < 0)
       return r;
+
+	}
+	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
+	        /* EXERCISE: Your code here */
+		return -EIO; // Replace this line
 	}
 
 	/* EXERCISE: Make sure you update necessary file meta data
