@@ -815,7 +815,6 @@ add_block(ospfs_inode_t *oi)
   int idx_data = 0;
   int new_blocks;
   char *cur_block_char;
-  uint32_t *cur_block_ptr;
 
   //Allocating blocks, and freeing if we can't allocate anymore
   if (indir2_index(n) != indir2_index(n+1))
@@ -875,13 +874,10 @@ add_block(ospfs_inode_t *oi)
   {
     if (indir2_index(n + 1) == 0)
       (ospfs_block((ospfs_block(oi->oi_indirect2))[indir_index(n + 1)]))[direct_index(n + 1)] = allocated[0]; 
-//      (uint32_t *)oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[0]; 
     else if (indir_index(n+1) != -1)
       (ospfs_block(oi->oi_indirect))[direct_index(n+1)] = allocated[0];
-//     (uint32_t *)oi->oi_indirect[direct_index(n + 1)] = allocated_ptr[0]; 
     else
       oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0];
-//    (uint32_t *)oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0]; 
   }
 
 
