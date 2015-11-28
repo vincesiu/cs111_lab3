@@ -1035,7 +1035,6 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 	while (amount < count && retval >= 0) {
 		uint32_t blockno = ospfs_inode_blockno(oi, *f_pos);
 		uint32_t n;
-    uint32_t length_to_copy;
 		char *data;
 
 		// ospfs_inode_blockno returns 0 on error
@@ -1056,18 +1055,12 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
     // Done - Vincent.
 
     // Just a nice cmov so I can perform less if statement branching yay
-    length_to_copy = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
+    n = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
 
     //Copying over the data
-    if (copy_to_user(buffer, data, length_to_copy) != 0)
+    if (copy_to_user(buffer, data, n) != 0)
       return -EIO; 
 
-
-    /*
-    for ( n = 0; n < length_to_copy; n++ )
-      buffer[n] = data[n];
-      */
-    
 
 		buffer += n;
 		amount += n;
