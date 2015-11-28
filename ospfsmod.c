@@ -828,8 +828,8 @@ add_block(ospfs_inode_t *oi)
     {
       idx_block--;
       for ( ; idx_block >= 0; idx_block-- )
-        free(allocated[idx_block]);
-      return -ENOSPC
+        free_block(allocated[idx_block]);
+      return -ENOSPC;
     }
   }
 
@@ -1059,7 +1059,9 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
     length_to_copy = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
 
     //Copying over the data
-    copy_to_user(buffer, data, length_to_copy);
+    if (copy_to_user(buffer, data, length_to_copy) != 0)
+      return -EIO; 
+
 
     /*
     for ( n = 0; n < length_to_copy; n++ )
@@ -1099,6 +1101,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 {
 	ospfs_inode_t *oi = ospfs_inode(filp->f_dentry->d_inode->i_ino);
 	int retval = 0;
+  int r = 0;
 	size_t amount = 0;
 
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
@@ -1109,8 +1112,8 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
-  if ((retval = change_size(oi, (uint32_t) count + (uint32_t) f_pos)) < 0)
-    return retval;
+  if ((r = change_size(oi, (uint32_t) count + (uint32_t) f_pos)) < 0)
+    return r;
 
 	// Copy data block by block
 	while (amount < count && retval >= 0) {
