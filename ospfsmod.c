@@ -986,7 +986,9 @@ remove_block(ospfs_inode_t *oi)
     free_block(allocated[0]);
   }
 
-  oi->oi_size -= OSPFS_BLKSIZE;
+  oi->oi_size -= (oi_size % OSPFS_BLKSIZE);
+  if (((oi_size % OSPFS_BLKSIZE) == 0) && (oi_size != ))
+    oi->oi_size -= OSPFS_BLKSIZE;
 	return 0; 
 }
 
@@ -1033,20 +1035,26 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	//uint32_t old_size = oi->oi_size;
 	int r = 0;
 
-	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
-    
-	        /* EXERCISE: Your code here */
-          //Done - Vincent.
-    if ((r = add_block(oi)) < 0)
-      return r;
+  //if (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size))
+  //{
+    while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 
-	}
-	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
-	        /* EXERCISE: Your code here */
-          //Done - Vincent.
-    if ((r = remove_block(oi)) < 0)
-      return r;
-	}
+      /* EXERCISE: Your code here */
+      //Done - Vincent.
+      if ((r = add_block(oi)) < 0)
+        return r;
+
+    }
+  //}
+  //else if (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size))
+  //{
+    while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
+      /* EXERCISE: Your code here */
+      //Done - Vincent.
+      if ((r = remove_block(oi)) < 0)
+        return r;
+    }
+ // }
 
 	/* EXERCISE: Make sure you update necessary file meta data
 	             and return the proper value. */
