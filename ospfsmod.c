@@ -805,6 +805,7 @@ add_block(ospfs_inode_t *oi)
   // allocated[1] is indirect block
   // allocated[2] is doubly indirect block
 	uint32_t allocated[3] = { 0, 0, 0 };
+  uint32_t *allocated_ptr[3] = { 0, 0, 0};
 
   
 
@@ -812,19 +813,19 @@ add_block(ospfs_inode_t *oi)
   // Done - Vincent.
   int idx_block = 0;
   int idx_data = 0;
-  int total_blocks;
+  int new_blocks;
   char *cur_block_char;
   uint32_t *cur_block_ptr;
 
   //Allocating blocks, and freeing if we can't allocate anymore
   if (indir2_index(n) != indir2_index(n+1))
-    total_blocks = 3;
+    new_blocks = 3;
   else if (indir_index(n) != indir_index(n))
-    total_blocks = 2;
+    new_blocks = 2;
   else
-    total_blocks = 1;
+    new_blocks = 1;
 
-  for (idx_block = 0; idx_block < total_blocks; idx_block++)
+  for (idx_block = 0; idx_block < new_blocks; idx_block++)
   {
     allocated[idx_block] = allocate_block();
     if (allocated[idx_block] == 0)
@@ -837,29 +838,54 @@ add_block(ospfs_inode_t *oi)
   }
 
   //Zeroing out blocks
-  for (idx_block = 0; idx_block < total_blocks; idx_block++)
+  for (idx_block = 0; idx_block < new_blocks; idx_block++)
   {
     cur_block_char = (char *) ospfs_block(allocated[idx_block]);
     for (idx_data = 0; idx_data < OSPFS_BLKSIZE; idx_data++)
       cur_block_char[idx_data] = 0; 
   }
 
+
   //Setting pointers for the indirect and doubly indirect blocks
-  if (total_blocks == 3)
+  allocated_ptr[2] = ospfs_block(allocated[2]);
+  allocated_ptr[1] = ospfs_block(allocated[1]);
+  allocated_ptr[0] = ospfs_block(allocated[0]);
+
+  if (new_blocks == 3)
   {
-    cur_block_ptr = ospfs_block(allocated[2]);
-    *cur_block_ptr = ospfs_block(allocated[1]);
+    oi->oi_indirect2 = allocated_ptr[2];
+    *oi->oi_indirect2 = allocated_ptr[1];
+    **oi->oi_indirect2 = allocated_ptr[0];
+
   }
-  if (total_blocks >= 2)
+  else if (new_blocks == 2)
   {
-    cur_block_ptr = ospfs_block(allocated[1]);
-    *cur_block_ptr = ospfs_block(allocated[0]);
+
+    *allocated_ptr[1] = allocated_ptr[0];
+
+    if (indir2_index(n + 1) == 0)
+      oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[1];
+    else
+      oi->oi_indirect = allocated_ptr[1];
   }
+  else
+  {
+    if (indir2_index(n + 1) == 0)
+      oi->oi_indirect2[indir_index(n + 1)] = allocated_ptr[0]; 
+    else if (indir_index(n+1) != -1)
+      oi->oi_indirect[direct_index(n + 1)] = allocated_ptr[0]; 
+    else
+      oi->oi_direct[direct_index(n + 1)] = allocated_ptr[0]; 
+  }
+
+
+
+
 
   //updating size field
   oi->oi_size += OSPFS_BLKSIZE;
   
-	return 0; // Replace this line
+	return 0; 
 }
 
 
@@ -889,7 +915,9 @@ static int
 remove_block(ospfs_inode_t *oi)
 {
 	// current number of blocks in file
-	//uint32_t n = ospfs_size2nblocks(oi->oi_size);
+	uint32_t n = ospfs_size2nblocks(oi->oi_size);
+
+  uint32_t *cur_block_ptr;
 
 
 	/* EXERCISE: Your code here */
