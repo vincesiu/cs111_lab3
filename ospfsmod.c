@@ -933,8 +933,6 @@ remove_block(ospfs_inode_t *oi)
   // things
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 
-  uint32_t *cur_block_ptr;
-  
 
 	/* EXERCISE: Your code here */
   // allocated[0] is data block
@@ -1208,6 +1206,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	int retval = 0;
   int r = 0;
 	size_t amount = 0;
+  int init_offset = *f_pos % OSPFS_BLKSIZE;
 
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
@@ -1216,7 +1215,6 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
   if ((filp->f_flags & O_APPEND) != 0) 
     *f_pos = oi->oi_size;
 
-  int init_offset = *f_pos % OSPFS_BLKSIZE;
 
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
