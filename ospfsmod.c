@@ -556,26 +556,27 @@ allocate_block(void)
   // Done - Vincent.
 
   //Getting the pointer to the free map
+  //Remember, free block bitmap starts at block 2 in this implementation 
 	void * freemap = &ospfs_data[OSPFS_FREEMAP_BLK * OSPFS_BLKSIZE];
   int freemap_idx = 0;
   int idx;
 
-  //Remember, free block bitmap starts at block 2, block 1 and 
-  //block 0 are reserved for super and for bootloader
-  //However, the free blocks start after the free block bitmap
-  //so we're going to have to run through multiple free block
-  //bitmaps, and incremenet the freemap pointer every time
+  //Note that there might be multiple free block bitmaps so we're going to have
+  //to run through multiple free block bitmaps, and increment the freemap
+  //pointer every time
   
-  for (idx = 2; idx < ospfs_super->os_nblocks; idx++)
+  //I want to optimize and use "idx = ospfs_super->os_firstinob", but why risk
+  //it?  I'm not sure 100% on the implementation details, so I'll just be safe.
+  for (idx = 0; idx < ospfs_super->os_nblocks; idx++)
   {
-    if (bitvector_test(freemap, (idx % OSPFS_BLKSIZE)) == 1)
+    if (bitvector_test(freemap, (idx % OSPFS_BLKBITSIZE)) == 1)
     {
       //set the block to in use
-      bitvector_clear(freemap, (idx % OSPFS_BLKSIZE));
+      bitvector_clear(freemap, (idx % OSPFS_BLKBITSIZE));
       return idx;
     }
 
-    if (idx == OSPFS_BLKSIZE)
+    if (idx == OSPFS_BLKBITSIZE)
     {
       //increment freemap pointer to the next bitvector 
       freemap_idx++;
@@ -602,6 +603,16 @@ static void
 free_block(uint32_t blockno)
 {
 	/* EXERCISE: Your code here */
+  // Done - Vincent
+
+
+  //Defensive programming? Yeah, maybe if I knew the implementation details of
+  //this module better, and I can't even return error codes! I have to flag it!
+  //Don't make us go in out of our head! 
+ 
+  int freemap_idx = blockno / OSPFS_BLKBITSIZE;
+	void * freemap = &ospfs_data[(OSPFS_FREEMAP_BLK + freemap_idx) * OSPFS_BLKSIZE];
+  bitvector_set(freemap, idx % OSPFS_BLKBITSIZE);
 }
 
 
