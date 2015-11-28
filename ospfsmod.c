@@ -570,7 +570,7 @@ allocate_block(void)
   //so we're going to have to run through multiple free block
   //bitmaps, and incremenet the freemap pointer every time
   
-  for (idx = 2; idx < ospfs_super->nblocks; idx++)
+  for (idx = 2; idx < ospfs_super->os_nblocks; idx++)
   {
     if (bitvector_test(freemap, (idx % OSPFS_BLKSIZE)) == 1)
     {
@@ -805,15 +805,12 @@ add_block(ospfs_inode_t *oi)
     //  doubly indirect block
     //  indirect block
     //  data block
-    allocated[0] = 1;
-    allocated[1] = 1;
   }
   else if (indir_index(n) != indir_index(n))
   {
     //need to allocate:
     //  indirect block
     //  data block
-    allocated[0] = 1;
   }
   else
   {
@@ -854,7 +851,8 @@ static int
 remove_block(ospfs_inode_t *oi)
 {
 	// current number of blocks in file
-	uint32_t n = ospfs_size2nblocks(oi->oi_size);
+	//uint32_t n = ospfs_size2nblocks(oi->oi_size);
+
 
 	/* EXERCISE: Your code here */
 	return -EIO; // Replace this line
@@ -900,8 +898,8 @@ remove_block(ospfs_inode_t *oi)
 static int
 change_size(ospfs_inode_t *oi, uint32_t new_size)
 {
-	uint32_t old_size = oi->oi_size;
-	int r = 0;
+	//uint32_t old_size = oi->oi_size;
+	//int r = 0;
 
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	        /* EXERCISE: Your code here */
@@ -999,7 +997,6 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 		uint32_t blockno = ospfs_inode_blockno(oi, *f_pos);
 		uint32_t n;
     uint32_t length_to_copy;
-    uint32_t idx;
 		char *data;
 
 		// ospfs_inode_blockno returns 0 on error
