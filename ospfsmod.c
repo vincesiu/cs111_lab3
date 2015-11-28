@@ -827,6 +827,7 @@ add_block(ospfs_inode_t *oi)
     cur_block_char = (char *) ospfs_block(oi->oi_direct[0]);
     for (idx_data = 0; idx_data < OSPFS_BLKSIZE; idx_data++)
       cur_block_char[idx_data] = 0; 
+    oi->oi_size += OSPFS_BLKSIZE;
     return 0;
   }
 
