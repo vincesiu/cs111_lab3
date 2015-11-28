@@ -1059,7 +1059,7 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
 
     //Copying over the data
     if (copy_to_user(buffer, data, n) != 0)
-      return -EIO; 
+      return -EFAULT; 
 
 
 		buffer += n;
@@ -1100,11 +1100,14 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
-  //filp->f_flags
+  // Done - Vincent.
+  if ((filp->f_flags & O_APPEND) != 0) 
+    f_pos = oi->oi_size - 1;
 
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
+  // Done - Vincent.
   if ((r = change_size(oi, (uint32_t) count + (uint32_t) f_pos)) < 0)
     return r;
 
@@ -1126,8 +1129,12 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 		// read user space.
 		// Keep track of the number of bytes moved in 'n'.
 		/* EXERCISE: Your code here */
-		retval = -EIO; // Replace these lines
-		goto done;
+    // Done - Vincent.
+    n = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
+
+    if (copy_from_user(data, buffer, n) != 0)
+      return -EFAULT;
+    
 
 		buffer += n;
 		amount += n;
