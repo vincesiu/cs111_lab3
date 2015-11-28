@@ -801,7 +801,7 @@ add_block(ospfs_inode_t *oi)
   // allocated[0] is data block
   // allocated[1] is indirect block
   // allocated[2] is doubly indirect block
-	uint32_t *allocated[3] = { 0, 0, 0 };
+	uint32_t allocated[3] = { 0, 0, 0 };
 
   
 
@@ -836,7 +836,7 @@ add_block(ospfs_inode_t *oi)
   //Zeroing out blocks
   for (idx_block = 0; idx_block < total_blocks; idx_block++)
   {
-    cur_block_char = ospfs_block(allocated[idx_block]);
+    cur_block_char = (char *) ospfs_block(allocated[idx_block]);
     for (idx_data = 0; idx_data < OSPFS_BLKSIZE; idx_data++)
       cur_block_char[idx_data] = 0; 
   }
