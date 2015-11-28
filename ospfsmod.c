@@ -798,37 +798,65 @@ add_block(ospfs_inode_t *oi)
 	uint32_t n = ospfs_size2nblocks(oi->oi_size);
 
 	// keep track of allocations to free in case of -ENOSPC
-  //allocated[0] is indirect block
-  //allocated[1] is doubly indirect block
-	uint32_t *allocated[2] = { 0, 0 };
+  // allocated[0] is data block
+  // allocated[1] is indirect block
+  // allocated[2] is doubly indirect block
+	uint32_t *allocated[3] = { 0, 0, 0 };
 
-  //direct_index(block num)
-  //indir_index(block_num)
-  //indir2_index(block_num)
-
-  if (indir2_index(n) != indir2_index(n+1))
-  {
-    //need to allocate:
-    //  doubly indirect block
-    //  indirect block
-    //  data block
-  }
-  else if (indir_index(n) != indir_index(n))
-  {
-    //need to allocate:
-    //  indirect block
-    //  data block
-  }
-  else
-  {
-    //need to allocate:
-    //  data block
-    allocated[0] = 0; //delete me
-  }
   
 
 	/* EXERCISE: Your code here */
-	return -EIO; // Replace this line
+  // Done - Vincent.
+  int idx_block = 0;
+  int idx_data = 0;
+  int total_blocks;
+  char *cur_block_char;
+  uint32_t *cur_block_ptr;
+
+  //Allocating blocks, and freeing if we can't allocate anymore
+  if (indir2_index(n) != indir2_index(n+1))
+    total_blocks = 3;
+  else if (indir_index(n) != indir_index(n))
+    total_blocks = 2;
+  else
+    total_blocks = 1;
+
+  for (idx_block = 0; idx_block < total_blocks; idx_block++)
+  {
+    allocated[idx_block] = allocate_block();
+    if (allocated[idx_block] == 0)
+    {
+      idx_block--;
+      for ( ; idx_block >= 0; idx_block-- )
+        free(allocated[idx_block]);
+      return -ENOSPC
+    }
+  }
+
+  //Zeroing out blocks
+  for (idx_block = 0; idx_block < total_blocks; idx_block++)
+  {
+    cur_block_char = ospfs_block(allocated[idx_block]);
+    for (idx_data = 0; idx_data < OSPFS_BLKSIZE; idx_data++)
+      cur_block_char[idx_data] = 0; 
+  }
+
+  //Setting pointers for the indirect and doubly indirect blocks
+  if (total_blocks == 3)
+  {
+    cur_block_ptr = ospfs_block(allocated[2]);
+    *cur_block_ptr = ospfs_block(allocated[1]);
+  }
+  if (total_blocks >= 2)
+  {
+    cur_block_ptr = ospfs_block(allocated[1]);
+    *cur_block_ptr = ospfs_block(allocated[0]);
+  }
+
+  //updating size field
+  oi->oi_size += OSPFS_BLKSIZE;
+  
+	return 0; // Replace this line
 }
 
 
@@ -906,7 +934,7 @@ static int
 change_size(ospfs_inode_t *oi, uint32_t new_size)
 {
 	//uint32_t old_size = oi->oi_size;
-	//int r = 0;
+	int r = 0;
 
 	while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 	        /* EXERCISE: Your code here */
@@ -914,12 +942,16 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	}
 	while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
 	        /* EXERCISE: Your code here */
-		return -EIO; // Replace this line
+          //Done - Vincent.
+    if ((r = add_block(oi)) < 0)
+      return r;
 	}
 
 	/* EXERCISE: Make sure you update necessary file meta data
 	             and return the proper value. */
-	return -EIO; // Replace this line
+  //Done - Vincent.
+  oi->oi_size = new_size;  
+	return 0; // Replace this line
 }
 
 
@@ -1027,8 +1059,13 @@ ospfs_read(struct file *filp, char __user *buffer, size_t count, loff_t *f_pos)
     length_to_copy = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
 
     //Copying over the data
+    copy_to_user(buffer, data, length_to_copy);
+
+    /*
     for ( n = 0; n < length_to_copy; n++ )
       buffer[n] = data[n];
+      */
+    
 
 		buffer += n;
 		amount += n;
@@ -1067,10 +1104,13 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
 	/* EXERCISE: Your code here */
+  //filp->f_flags
 
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
+  if ((retval = change_size(oi, (uint32_t) count + (uint32_t) f_pos)) < 0)
+    return retval;
 
 	// Copy data block by block
 	while (amount < count && retval >= 0) {
