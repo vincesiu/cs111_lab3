@@ -15,6 +15,9 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
 
+#define DEBUG_CREATE_BLANK_DIRENTRY 1
+#define DEBUG_OSPFS_CREATE 1
+
 /****************************************************************************
  * ospfsmod
  *
@@ -1036,8 +1039,6 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
 	//uint32_t old_size = oi->oi_size;
 	int r = 0;
 
-  //if (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size))
-  //{
     while (ospfs_size2nblocks(oi->oi_size) < ospfs_size2nblocks(new_size)) {
 
       /* EXERCISE: Your code here */
@@ -1046,9 +1047,6 @@ change_size(ospfs_inode_t *oi, uint32_t new_size)
         return r;
 
     }
-  //}
-  //else if (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size))
-  //{
     while (ospfs_size2nblocks(oi->oi_size) > ospfs_size2nblocks(new_size)) {
       /* EXERCISE: Your code here */
       //Done - Vincent.
@@ -1318,6 +1316,8 @@ find_direntry(ospfs_inode_t *dir_oi, const char *name, int namelen)
 static ospfs_direntry_t *
 create_blank_direntry(ospfs_inode_t *dir_oi)
 {
+
+
 	// Outline:
 	// 1. Check the existing directory data for an empty entry.  Return one
 	//    if you find it.
@@ -1326,6 +1326,33 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	//    entries and return one of them.
 
 	/* EXERCISE: Your code here. */
+  ospfs_direntry_t *dir_entry;
+  uint32_t dir_pos = 0;
+  uint32_t retval;
+
+  while (ospfs_inode_blockno(dir_oi, dir_pos) != 0)  
+  {
+    dir_entry = ospfs_inode_data(dir_oi, dir_pos);
+
+    if (dir_entry->od_ino == 0)
+      return dir_entry;  
+
+    dir_pos += OSPFS_DIRENTRY_SIZE;
+
+    if (DEBUG_CREATE_BLANK_DIRENTRY)
+      eprintk("dir_pos: %d\n", dir_pos);
+  }
+
+  if (DEBUG_CREATE_BLANK_DIRENTRY)
+    eprintk("dir_oi dirsize: %d\n", dir_oi->oi_size);
+
+  if ((retval = change_size(dir_oi, dir_pos + OSPFS_DIRENTRY_SIZE) < 0)
+    return retval;
+
+  return ospfs_inode_data(dir_oi, dir_pos);
+
+  
+
 	return ERR_PTR(-EINVAL); // Replace this line
 }
 
@@ -1396,10 +1423,71 @@ ospfs_link(struct dentry *src_dentry, struct inode *dir, struct dentry *dst_dent
 static int
 ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata *nd)
 {
-	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
-	uint32_t entry_ino = 0;
 	/* EXERCISE: Your code here. */
-	return -EINVAL; // Replace this line
+  uint32_t idx = 0;
+	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
+
+	uint32_t entry_ino = 2;
+  ospfs_direntry_t *dir_new_entry;
+  ospfs_inode_t *file_new_oi;
+
+
+  if (DEBUG_OSPFS_CREATE)
+    eprintk("ospfs_create function init, creating a blank direntry\n");
+  
+  /*
+  //Checking for EEXIST
+  while (ospfs_inode_blockno(dir_oi, dir_pos) != 0)  
+  {
+    dir_entry = ospfs_inode_data(dir_oi, dir_pos);
+
+    if (dir_entry->od_ino == 0)
+      return dir_entry;  
+
+    dir_pos += OSPFS_DIRENTRY_SIZE;
+
+    if (DEBUG_CREATE_BLANK_DIRENTRY)
+      eprintk("dir_pos: %d\n", dir_pos);
+  }
+  */
+
+  dir_new_entry = create_blank_direntry(dir_oi);
+
+
+  
+  if (DEBUG_OSPFS_CREATE)
+    eprintk("ospfs create: attempting to find deallocated inode\n");
+
+  while (1)
+  {
+   if ((file_new_oi = ospfs_inode(entry_ino)) != 0)
+   {
+     //errors n stuff, ran out of inode numbers;
+     if (DEBUG_OSPFS_CREATE)
+       eprintk("Ran out of inode entries when attempting to create a new file\n");
+   }
+   if (file_new_oi->oi_nlink == 0)
+     break;
+   entry_ino++;
+  }
+
+
+
+  if (DEBUG_OSPFS_CREATE)
+    eprintk("ospfs create: initializing the parameters of the inode\n");
+
+  file_new_oi->oi_nlink++;
+  file_new_oi->oi_mode = mode;
+  file_new_oi->oi_ftype = OSPFS_FTYPE_REG;       
+
+
+
+  for (idx = 0; idx < dentry->d_name.len; idx++)
+    dir_new_entry->[idx] = dentry->d_name.name[idx];
+  dir_new_entry->[idx] = '\0';
+  
+
+
 
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
@@ -1411,6 +1499,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 		d_instantiate(dentry, i);
 		return 0;
 	}
+
 }
 
 
