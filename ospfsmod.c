@@ -1383,7 +1383,7 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
   if (DEBUG_CREATE_BLANK_DIRENTRY)
     eprintk("dir_oi dirsize: %d\n", dir_oi->oi_size);
 
-  if ((retval = change_size(dir_oi, dir_pos + OSPFS_DIRENTRY_SIZE) < 0)
+  if (retval = change_size(dir_oi, dir_pos + OSPFS_DIRENTRY_SIZE) < 0)
     return retval;
 
   return ospfs_inode_data(dir_oi, dir_pos);
@@ -1520,8 +1520,8 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 
 
   for (idx = 0; idx < dentry->d_name.len; idx++)
-    dir_new_entry->[idx] = dentry->d_name.name[idx];
-  dir_new_entry->[idx] = '\0';
+    dir_new_entry->od_name[idx] = dentry->d_name.name[idx];
+  dir_new_entry->od_name[idx] = '\0';
   
 
 
