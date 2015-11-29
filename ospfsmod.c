@@ -1611,14 +1611,56 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 //
 //   EXERCISE: Complete this function.
 
+//   Exercise completed -- Julien
+
 static int
 ospfs_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
 {
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 	uint32_t entry_ino = 0;
+	ospfs_symlink_inode_t *sym_oi;
+ 	ospfs_direntry_t *od;
+ 	int len = 0;
 
-	/* EXERCISE: Your code here. */
-	return -EINVAL;
+ 	// Check if either name length is too long
+ 	while (symname[len] != NULL)
+ 		len++;
+ 	if (len > OSPFS_MAXSYMLINKLEN || dentry->d_name.len > OSPFS_MAXSYMLINKLEN)
+ 		return -ENAMETOOLONG;
+
+	// Check if name is already taken in directory
+	if (find_direntry(dir_oi, dentry->d_name.name, dentry->d_name.len) != NULL)
+		return -EEXIST;
+
+	// Find the first open inode
+	for (; entry_ino < ospfs_super->os_ninodes; entry_ino++)
+	{
+		sym_oi = (ospfs_symlink_inode_t*)ospfs_inode(entry_ino);
+		if (sym_oi->oi_nlink == 0) // Indicates free symlink inode
+			break;
+	}
+	// Check if there are no open inodes
+	if (entry_ino == ospfs_super->os_ninodes)
+		return -ENOSPC;
+
+	// Create blank direntry + error check
+	od = create_blank_direntry(dir_oi);
+	if (IS_ERR(od))
+		return PTR_ERR(od);
+
+	// Populate symlink fields
+	sym_oi->oi_size = len;
+	sym_oi->oi_ftype = OSPFS_FTYPE_SYMLINK;
+	sym_oi->oi_nlink = 1;
+	for (len = 0; symname[len] != NULL; len++)
+		sym_oi->oi_symlink[len] = symname[len];
+	sym_oi->oi_symlink[len] = NULL;
+
+	// Populate direntry fields
+	for (len = 0; len < dentry->d_name.len; len++)
+		od->od_name[len] = dentry->d_name.name[len];
+	od->od_name[len] = NULL;
+	od->od_ino = entry_ino;
 
 	/* Execute this code after your function has successfully created the
 	   file.  Set entry_ino to the created file's inode number before
