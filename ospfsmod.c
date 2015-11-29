@@ -423,6 +423,8 @@ ospfs_dir_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *ign
 //
 //   EXERCISE: Finish implementing this function.
 
+//   Exercise completed -- Julien
+
 static int
 ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 {
@@ -1452,10 +1454,42 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 //
 //   EXERCISE: Complete this function.
 
+// Exercise completed -- Julien
+
 static int
 ospfs_link(struct dentry *src_dentry, struct inode *dir, struct dentry *dst_dentry) {
-	/* EXERCISE: Your code here. */
-	return -EINVAL;
+	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
+	ospfs_direntry_t *od;
+	ospfs_inode_t *src_oi = ospfs_inode(src_dentry->d_inode->i_ino);
+	int len = 0;
+
+	// Check name length
+	if (dst_dentry->d_name.len > OSPFS_MAXNAMELEN)
+		return -ENAMETOOLONG;
+
+	// Check if name already taken in dir
+	if (find_direntry(dir_oi, dst_dentry->d_name.name, dst_dentry->d_name.len) != NULL)
+		return -EEXIST;
+
+	// Create entry for link
+	od = create_blank_direntry(dir_oi);
+	// Check for errors in creating entry
+	if (IS_ERR(od))
+		return PTR_ERR(od);
+
+	// Populate direntry fields
+	while (len < dst_dentry->d_name.len) 
+	{
+		od->od_name[len] = dst_dentry->d_name.name[len];
+		len++;
+	}
+	od->od_name[len] = NULL;
+	od->od_ino = src_dentry->d_inode->i_ino;
+
+	// Increment number of links for source file
+	src_oi->oi_nlink++;
+	
+	return 0;
 }
 
 // ospfs_create
