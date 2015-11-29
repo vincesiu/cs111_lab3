@@ -615,7 +615,7 @@ allocate_block(void)
   //I want to optimize and use "idx = ospfs_super->os_firstinob", but why risk
   //it?  I'm not sure 100% on the implementation details, so I'll just be safe.
 
-  for (idx = 0; idx < ospfs_super->os_nblocks; idx++)
+  for (idx = ospfs_super->os_firstinob; idx < ospfs_super->os_nblocks; idx++)
   {
     if (bitvector_test(freemap, (idx % OSPFS_BLKBITSIZE)) == 1)
     {
