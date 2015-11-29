@@ -1694,8 +1694,8 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	ospfs_symlink_inode_t *oi =
 		(ospfs_symlink_inode_t *) ospfs_inode(dentry->d_inode->i_ino);
 	// Exercise: Your code here.
-  char prefix[7] = "root?";
-  char symlink[OSPFS_MAXSYMLINKLEN + 1];
+  char prefix[6] = "root?";
+  char *symlink = kmalloc((OSPFS_MAXSYMLINKLEN + !) * sizeof(char), 0);
   int idx;
 
   char *start;
@@ -1704,7 +1704,7 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
   
 
   //Check if it's a conditional
-  for (idx = 0; idx < 6; idx++)
+  for (idx = 0; idx < 5; idx++)
   {
     if (prefix[idx] != oi->oi_symlink[idx])
     {
@@ -1729,14 +1729,15 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
   end = start;
   while (*end != endchar)
     end++;
+  end--;
 
-  for (idx = 0; idx < (start - end); idx++)
+  for (idx = 0; idx <= (end-start); idx++)
     symlink[idx] = start[idx];
   symlink[idx] = '\0';
 
 
 
-	nd_set_link(nd, oi->oi_symlink);
+	nd_set_link(nd, symlink);
 	return (void *) 0;
 }
 
