@@ -1497,7 +1497,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 
   while (1)
   {
-   if ((file_new_oi = ospfs_inode(entry_ino)) != 0)
+   if ((file_new_oi = ospfs_inode(entry_ino)) == 0)
    {
      //errors n stuff, ran out of inode numbers;
      if (DEBUG_OSPFS_CREATE)
@@ -1522,6 +1522,8 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
   for (idx = 0; idx < dentry->d_name.len; idx++)
     dir_new_entry->od_name[idx] = dentry->d_name.name[idx];
   dir_new_entry->od_name[idx] = '\0';
+
+  dir_new_entry->od_ino = entry_ino;
   
 
 
