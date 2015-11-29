@@ -1652,6 +1652,47 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 	ospfs_symlink_inode_t *oi =
 		(ospfs_symlink_inode_t *) ospfs_inode(dentry->d_inode->i_ino);
 	// Exercise: Your code here.
+  char prefix[7] = "root?";
+  char symlink[OSPFS_MAXSYMLINKLEN + 1];
+  int idx;
+
+  char *start;
+  char *end;
+  char endchar;
+  
+
+  //Check if it's a conditional
+  for (idx = 0; idx < 6; idx++)
+  {
+    if (prefix[idx] != oi->oi_symlink[idx])
+    {
+	    nd_set_link(nd, oi->oi_symlink);
+      return (void *) 0;
+    }
+  }
+
+   start = oi->oi_symlink + 5; 
+  if (current->uid == 0)
+  {
+    endchar = ':';
+  }
+  else
+  {
+    while(*start != ':')
+      start++;
+    start++;
+    endchar = '\0';
+  }
+
+  end = start;
+  while (*end != endchar)
+    end++;
+
+  for (idx = 0; idx < (start - end); idx++)
+    symlink[idx] = start[idx];
+  symlink[idx] = '\0';
+
+
 
 	nd_set_link(nd, oi->oi_symlink);
 	return (void *) 0;
