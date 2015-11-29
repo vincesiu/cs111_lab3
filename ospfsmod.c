@@ -1241,7 +1241,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	int retval = 0;
   int r = 0;
 	size_t amount = 0;
-  int init_offset = *f_pos % OSPFS_BLKSIZE;
+  int init_offset;
 
 	// Support files opened with the O_APPEND flag.  To detect O_APPEND,
 	// use struct file's f_flags field and the O_APPEND bit.
@@ -1250,6 +1250,7 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
   if ((filp->f_flags & O_APPEND) != 0) 
     *f_pos = oi->oi_size;
 
+  init_offset = *f_pos % OSPFS_BLKSIZE;
 
 	// If the user is writing past the end of the file, change the file's
 	// size to accomodate the request.  (Use change_size().)
