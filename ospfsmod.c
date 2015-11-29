@@ -17,7 +17,7 @@
 
 #define DEBUG_CREATE_BLANK_DIRENTRY 0
 #define DEBUG_OSPFS_CREATE 0
-#define DEBUG_OSPFS_WRITE 1
+#define DEBUG_OSPFS_WRITE 0
 
 /****************************************************************************
  * ospfsmod
@@ -1269,8 +1269,12 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
   if (DEBUG_OSPFS_WRITE)
     eprintk("oi->size: %d\n", oi->oi_size);
 
-  if ((r = change_size(oi, (uint32_t) count + (uint32_t) *f_pos)) < 0)
-    return r;
+  if ( (uint32_t) count + (uint32_t) *f_pos >= oi->oi_size)
+    if ((r = change_size(oi, (uint32_t) count + (uint32_t) *f_pos)) < 0)
+      return r;
+
+  if (DEBUG_OSPFS_WRITE)
+    eprintk("oi->size: %d\n", oi->oi_size);
 
 	// Copy data block by block
 	while (amount < count && retval >= 0) {
