@@ -15,8 +15,8 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
 
-#define DEBUG_CREATE_BLANK_DIRENTRY 1
-#define DEBUG_OSPFS_CREATE 1
+#define DEBUG_CREATE_BLANK_DIRENTRY 0
+#define DEBUG_OSPFS_CREATE 0
 
 /****************************************************************************
  * ospfsmod
@@ -1370,36 +1370,6 @@ create_blank_direntry(ospfs_inode_t *dir_oi)
 	//    entries and return one of them.
 
 	/* EXERCISE: Your code here. */
-  /*
-  ospfs_direntry_t *dir_entry;
-  uint32_t dir_pos = 0;
-  uint32_t retval;
-
-  while (ospfs_inode_blockno(dir_oi, dir_pos) != 0)  
-  {
-    dir_entry = ospfs_inode_data(dir_oi, dir_pos);
-
-    if (dir_entry->od_ino == 0)
-      return dir_entry;  
-
-    dir_pos += OSPFS_DIRENTRY_SIZE;
-
-    if (DEBUG_CREATE_BLANK_DIRENTRY)
-      eprintk("dir_pos: %d\n", dir_pos);
-  }
-
-  if (DEBUG_CREATE_BLANK_DIRENTRY)
-    eprintk("dir_oi dirsize: %d\n", dir_oi->oi_size);
-
-  if (retval = change_size(dir_oi, dir_pos + OSPFS_DIRENTRY_SIZE) < 0)
-    return retval;
-
-  return ospfs_inode_data(dir_oi, dir_pos);
-
-  
-
-	return ERR_PTR(-EINVAL); // Replace this line
-*/
   ospfs_direntry_t *dir_entry;
   uint32_t dir_pos = 0;
 
@@ -1520,6 +1490,7 @@ ospfs_link(struct dentry *src_dentry, struct inode *dir, struct dentry *dst_dent
 //   3. Initialize the directory entry and inode.
 //
 //   EXERCISE: Complete this function.
+//   Done - Vincent.
 
 static int
 ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata *nd)
@@ -1527,61 +1498,6 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 	/* EXERCISE: Your code here. */
   // Done - Vincent.
 
-
-
-  /*
-  uint32_t idx = 0;
-	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
-
-	uint32_t entry_ino = 2;
-  ospfs_direntry_t *dir_new_entry;
-  ospfs_inode_t *file_new_oi;
-
-
-  if (DEBUG_OSPFS_CREATE)
-    eprintk("ospfs_create function init, creating a blank direntry\n");
-
-  //checking for a file of the same name
-  if (find_direntry(dir_oi, dentry->d_name._od_name, dentry->d_name.len) != 0)
-    return -EEXIST;
-  
-
-
-  
-  if (DEBUG_OSPFS_CREATE)
-    eprintk("ospfs create: attempting to find free inode\n");
-
-  while (1)
-  {
-   if ((file_new_oi = ospfs_inode(entry_ino)) == 0)
-   {
-     //errors n stuff, ran out of inode numbers;
-     if (DEBUG_OSPFS_CREATE)
-       eprintk("Ran out of inode entries when attempting to create a new file\n");
-     return -ENOSPC;
-   }
-   if (file_new_oi->oi_nlink == 0)
-     break;
-   entry_ino++;
-  }
-
-
-
-  if (DEBUG_OSPFS_CREATE)
-    eprintk("ospfs create: initializing the parameters of the inode\n");
-
-  file_new_oi->oi_nlink++;
-  file_new_oi->oi_mode = mode;
-  file_new_oi->oi_ftype = OSPFS_FTYPE_REG;       
-
-
-
-  for (idx = 0; idx < dentry->d_name.len; idx++)
-    dir_new_entry->od_name[idx] = dentry->d_name.name[idx];
-  dir_new_entry->od_name[idx] = '\0';
-
-  dir_new_entry->od_ino = entry_ino;
-  */
 
 
   uint32_t idx = 0;
