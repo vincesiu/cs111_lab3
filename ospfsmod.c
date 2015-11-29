@@ -456,7 +456,8 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		 *
 		 * EXERCISE: Your code here */
 		
-		int entry_off = f_pos * OSPFS_DIRENTRY_SIZE;
+		// f_pos is an offset into directory data plus two; thus, (f_pos - 2) is the proper data offset
+		int entry_off = (f_pos - 2) * OSPFS_DIRENTRY_SIZE;
 		if (ospfs_inode_blockno(dir_oi, entry_off) == 0)
 		{
 			r = 1;
@@ -515,7 +516,10 @@ ospfs_dir_readdir(struct file *filp, void *dirent, filldir_t filldir)
 		if (ok_so_far >= 0)
 			f_pos++;
 		else
+		{
+			r = 0;
 			break;
+		}
 	}
 
 	// Save the file position and return!
