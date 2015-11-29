@@ -17,6 +17,7 @@
 
 #define DEBUG_CREATE_BLANK_DIRENTRY 0
 #define DEBUG_OSPFS_CREATE 0
+#define DEBUG_OSPFS_WRITE 1
 
 /****************************************************************************
  * ospfsmod
@@ -1285,6 +1286,9 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 		/* EXERCISE: Your code here */
     // Done - Vincent.
     n = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
+
+    if (DEBUG_OSPFS_WRITE)
+      eprintk("write: value of n %d\n", n);
 
     if (copy_from_user(data + init_offset, buffer, n) != 0)
       return -EFAULT;
