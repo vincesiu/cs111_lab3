@@ -1263,6 +1263,12 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 	// size to accomodate the request.  (Use change_size().)
 	/* EXERCISE: Your code here */
   // Done - Vincent.
+  if (DEBUG_OSPFS_WRITE)
+    eprintk("count + *fpos: %d + %d\n", count, *f_pos);
+
+  if (DEBUG_OSPFS_WRITE)
+    eprintk("oi->size: %d\n", oi->oi_size);
+
   if ((r = change_size(oi, (uint32_t) count + (uint32_t) *f_pos)) < 0)
     return r;
 
@@ -1289,6 +1295,11 @@ ospfs_write(struct file *filp, const char __user *buffer, size_t count, loff_t *
 
     if (DEBUG_OSPFS_WRITE)
       eprintk("write: value of n %d\n", n);
+
+    if (DEBUG_OSPFS_WRITE)
+      eprintk("write: value of init_offset %d\n", init_offset);
+    if (DEBUG_OSPFS_WRITE)
+      eprintk("oi->size: %d\n", oi->oi_size);
 
     if (copy_from_user(data + init_offset, buffer, n) != 0)
       return -EFAULT;
