@@ -1466,6 +1466,7 @@ static int
 ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata *nd)
 {
 	/* EXERCISE: Your code here. */
+  // Done - Vincent.
   uint32_t idx = 0;
 	ospfs_inode_t *dir_oi = ospfs_inode(dir->i_ino);
 
@@ -1476,29 +1477,16 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
 
   if (DEBUG_OSPFS_CREATE)
     eprintk("ospfs_create function init, creating a blank direntry\n");
+
+  //checking for a file of the same name
+  if (find_direntry(dir_oi, dentry->d_name._od_name, dentry->d_name.len) != 0)
+    return -EEXIST;
   
-  /*
-  //Checking for EEXIST
-  while (ospfs_inode_blockno(dir_oi, dir_pos) != 0)  
-  {
-    dir_entry = ospfs_inode_data(dir_oi, dir_pos);
-
-    if (dir_entry->od_ino == 0)
-      return dir_entry;  
-
-    dir_pos += OSPFS_DIRENTRY_SIZE;
-
-    if (DEBUG_CREATE_BLANK_DIRENTRY)
-      eprintk("dir_pos: %d\n", dir_pos);
-  }
-  */
-
-  dir_new_entry = create_blank_direntry(dir_oi);
 
 
   
   if (DEBUG_OSPFS_CREATE)
-    eprintk("ospfs create: attempting to find deallocated inode\n");
+    eprintk("ospfs create: attempting to find free inode\n");
 
   while (1)
   {
@@ -1507,6 +1495,7 @@ ospfs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidat
      //errors n stuff, ran out of inode numbers;
      if (DEBUG_OSPFS_CREATE)
        eprintk("Ran out of inode entries when attempting to create a new file\n");
+     return -ENOSPC;
    }
    if (file_new_oi->oi_nlink == 0)
      break;
