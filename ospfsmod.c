@@ -1695,7 +1695,7 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 		(ospfs_symlink_inode_t *) ospfs_inode(dentry->d_inode->i_ino);
 	// Exercise: Your code here.
   char prefix[6] = "root?";
-  char *symlink = kmalloc((OSPFS_MAXSYMLINKLEN + !) * sizeof(char), 0);
+  char *symlink = kmalloc((OSPFS_MAXSYMLINKLEN + 1) * sizeof(char), 0);
   int idx;
 
   char *start;
