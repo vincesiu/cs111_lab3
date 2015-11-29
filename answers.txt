@@ -16,9 +16,9 @@ Student ID: 904280752
 Email: vince.siu4@gmail.com
 
 # Partner 2 (if you're working in a team)
-Name: 
-Student ID: 
-Email: 
+Name: Julien Brundrett
+Student ID: 604345463
+Email: julien.brundret@gmail.com 
 
 # Extra credit problems
 #Extra credit problem: none
