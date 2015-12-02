@@ -1763,6 +1763,10 @@ ospfs_follow_link(struct dentry *dentry, struct nameidata *nd)
 }
 
 
+
+
+
+
 // Define the file system operations structures mentioned above.
 
 static struct file_system_type ospfs_fs_type = {
@@ -1808,6 +1812,16 @@ static struct super_operations ospfs_superblock_ops = {
 };
 
 
+void replay_journal(void)
+{
+  ospfs_inode_t *journal_oi = ospfs_inode(OSPFS_JOURNAL_INODE);
+  journal_oi->oi_nlink = 1;
+  string = "hihihi\nhihihi\n";
+  eprintk("testing: \n%s", string);
+
+}
+
+
 // Functions used to hook the module into the kernel!
 
 static int __init init_ospfs_fs(void)
@@ -1817,13 +1831,7 @@ static int __init init_ospfs_fs(void)
   if (DESIGNPROJECT_JOURNAL)
   {
     eprintk("ospfs_super: %p\n", ospfs_super);
-
-    /*
-	uint32_t os_magic;     // Magic number: OSPFS_MAGIC
-	uint32_t os_nblocks;   // Number of blocks on disk
-	uint32_t os_ninodes;   // Number of inodes on disk
-	uint32_t os_firstinob; // First inode block
-  */
+    replay_journal();
   }
 
 	return register_filesystem(&ospfs_fs_type);

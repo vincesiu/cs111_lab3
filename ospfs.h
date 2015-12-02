@@ -61,6 +61,8 @@
 #define OSPFS_FREEMAP_BLK  2  // First block in free block
                               // bitmap
 
+#define OSPFS_JOURNAL_INODE 15 //The journal inode
+
 typedef struct ospfs_super {
 	uint32_t os_magic;     // Magic number: OSPFS_MAGIC
 	uint32_t os_nblocks;   // Number of blocks on disk
