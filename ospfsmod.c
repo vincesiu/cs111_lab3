@@ -19,6 +19,8 @@
 #define DEBUG_OSPFS_CREATE 0
 #define DEBUG_OSPFS_WRITE 0
 
+#define DESIGNPROJECT_JOURNAL 1
+
 /****************************************************************************
  * ospfsmod
  *
@@ -1811,6 +1813,19 @@ static struct super_operations ospfs_superblock_ops = {
 static int __init init_ospfs_fs(void)
 {
 	eprintk("Loading ospfs module...\n");
+  
+  if (DESIGNPROJECT_JOURNAL)
+  {
+    eprintk("ospfs_super: %p\n", ospfs_super);
+
+    /*
+	uint32_t os_magic;     // Magic number: OSPFS_MAGIC
+	uint32_t os_nblocks;   // Number of blocks on disk
+	uint32_t os_ninodes;   // Number of inodes on disk
+	uint32_t os_firstinob; // First inode block
+  */
+  }
+
 	return register_filesystem(&ospfs_fs_type);
 }
 
