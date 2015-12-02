@@ -1816,7 +1816,7 @@ void replay_journal(void)
 {
   ospfs_inode_t *journal_oi = ospfs_inode(OSPFS_JOURNAL_INODE);
   journal_oi->oi_nlink = 1;
-  string = "hihihi\nhihihi\n";
+  char *string = "hihihi\nhihihi\n";
   eprintk("testing: \n%s", string);
 
 }
