@@ -1815,10 +1815,50 @@ static struct super_operations ospfs_superblock_ops = {
 void replay_journal(void)
 {
   ospfs_inode_t *journal_oi = ospfs_inode(OSPFS_JOURNAL_INODE);
-  journal_oi->oi_nlink = 1;
-  char *string = "hihihi\nhihihi\n";
-  eprintk("testing: \n%s", string);
+  int amount = 0;
+  int retval;
+  int f_pos = 0;
 
+  eprintk("journal_oi->oi_nlink = %d", journal_oi->oi_nlink);
+  eprintk("-----------------------------\n");
+  eprintk("Replaying journal:\n");
+  journal_oi->oi_nlink = 1;
+
+  count = oi->oi_size;
+
+	// Copy the data to user block by block
+	while (amount < count && retval >= 0) {
+		uint32_t blockno = ospfs_inode_blockno(oi, f_pos);
+		uint32_t n;
+		char *data;
+    char *buffer;
+
+		// ospfs_inode_blockno returns 0 on error
+
+		if (blockno == 0) {
+      return;
+		}
+
+		data = ospfs_block(blockno);
+
+    n = (count - amount) > OSPFS_BLKSIZE ? OSPFS_BLKSIZE : (count - amount) ;
+
+    //Copying over the data
+    buffer = kmalloc((n + 1) * sizeof(char), 0);
+    buffer[n] = '\0';
+
+    eprintk("%s", buffer);
+
+
+		buffer += n;
+		amount += n;
+		f_pos += n;
+	}
+
+  eprintk("Finished replaying journal\n");
+  eprintk("-----------------------------\n");
+
+	return; 
 }
 
 
